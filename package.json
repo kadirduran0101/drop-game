@@ -1,0 +1,21 @@
+{
+  "name": "drop",
+  "version": "1.0.0",
+  "description": "DROP - one-tap chain-cascade physics, retro-modern fusion",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve www -p 3000",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/",
+    "harness": "node automation/scripts/real-game-test.mjs",
+    "ship-gate": "node automation/scripts/ship-gate.mjs",
+    "lint": "echo 'no lint config; vanilla JS'"
+  },
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "playwright": "^1.40.0",
+    "serve": "^14.0.0"
+  }
+}

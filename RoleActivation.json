@@ -1,0 +1,86 @@
+{
+  "project": "DROP",
+  "generated": "2026-05-02",
+  "strategy_inputs": {
+    "type": "game",
+    "monetization": "F2P-cosmetic",
+    "scale": "solo"
+  },
+  "activation_source": "~/.claude/skills/game-build/COMPANY_STRUCTURE.md §1 + §6 (Solo Tier)",
+  "active_roles": [
+    {
+      "id": "#3",
+      "name": "Strategist",
+      "deep_spec": "roles/03-strategist.md",
+      "owns": "STRATEGY.md, PIVOT.md (Mode B if needed), STOP_CRITERIA",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#1",
+      "name": "Orchestrator",
+      "deep_spec": "roles/01-orchestrator.md",
+      "owns": "Phase gate enforcement, RoleActivation.json (this file)",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#2",
+      "name": "Architect",
+      "deep_spec": "roles/02-architect.md",
+      "owns": "ARCHITECTURE.md, ADRs (engine/lib choice, deploy)",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#7",
+      "name": "Visual Designer",
+      "deep_spec": "roles/07-visual-designer.md",
+      "owns": "STYLE_GUIDE.md (8-bit-pixel + modern-glow + CRT scanline fusion palette)",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#G1",
+      "name": "Game Designer",
+      "deep_spec": "roles/_BUNDLE.md#G1",
+      "owns": "GDD.md (drop mechanic, peg layout, chain detection, ball-saver-on-spawn)",
+      "trigger": "Solo Tier (fixed) + type=game"
+    },
+    {
+      "id": "#11",
+      "name": "Frontend Engineer",
+      "deep_spec": "roles/11-frontend-eng.md",
+      "owns": "Implementation (Canvas + Matter.js or custom physics, vanilla JS)",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#19",
+      "name": "QA Functional Lead",
+      "deep_spec": "roles/19-qa-functional.md",
+      "owns": "bugs.json, persona harness verdicts, real-input testing (no .click() shortcuts)",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#20",
+      "name": "UX Researcher",
+      "deep_spec": "roles/20-ux-researcher.md",
+      "owns": "engagement.json, Layer B verdict (premium-feel/hype-delivery/hook-activation/would-screenshot)",
+      "trigger": "Solo Tier (fixed)"
+    },
+    {
+      "id": "#25",
+      "name": "Release Manager",
+      "deep_spec": "roles/25-release-manager.md",
+      "owns": "Tags, deploys (Vercel), ship-gate execution",
+      "trigger": "Solo Tier (fixed) + always at GA"
+    }
+  ],
+  "dormant_roles_count": 101,
+  "dormant_categories": [
+    "Shared Core remainder (#4-6,#8-10,#12-18,#21-24,#26-50) — 41 dormant",
+    "Game Vertical extras (#G2-G30) — 29 dormant (G1 active for solo)",
+    "App Vertical (#A1-A30) — 30 dormant (type=game)",
+    "Cross-cutting leads (#48-50) — implicit via orchestrator [#1]"
+  ],
+  "solo_tier_rule": "EXACTLY 9 active. Adding a 10th = block; either remove one or escalate scale. Per COMPANY_STRUCTURE.md §6.",
+  "failure_mode_ledger_check": "READ at this Phase -0.5 per §7 anti-pattern rule. Past P0 patterns relevant to this project (top-based physics game): (1) flipper kick power vs benchmark — N/A no flippers; (2) AI license drift — N/A no AI gen for v1; (3) deploy config gotchas — APPLIES, [#25] must verify Vercel cleanUrls vs static asset paths; (4) ball-spawn-into-drain — APPLIES analog: drop position must always result in at least 1 peg contact (no insta-zero-bounce drops); (5) user-as-tester — APPLIES, [#19]+[#20] dispatched before any 'done' message.",
+  "phase_advance_unlocked": true,
+  "next_phase": "Phase 0 — IDEA GENERATION (CONCEPT.md derived from STRATEGY.md frontmatter + content)"
+}
