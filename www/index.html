@@ -44,7 +44,14 @@
   #splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--retro-bg);z-index:100;flex-direction:column;gap:16px;transition:opacity 600ms}
   #splash.fade{opacity:0;pointer-events:none}
   #splash h1{color:var(--neon-magenta);text-shadow:0 0 16px var(--neon-magenta);font-size:48px;letter-spacing:8px}
-  #splash p{color:var(--retro-fg);font-size:8px;opacity:.6;animation:blink 1s infinite}
+  #splash p{color:var(--retro-fg);font-size:8px;opacity:.6;animation:blink 1s infinite;margin-top:8px}
+  #splash .how{display:flex;flex-direction:column;gap:12px;max-width:320px;padding:0 16px}
+  #splash .how-row{display:flex;align-items:center;gap:12px;font-size:9px;line-height:1.6;color:var(--retro-fg)}
+  #splash .how-num{flex:0 0 24px;height:24px;display:flex;align-items:center;justify-content:center;background:var(--neon-cyan);color:var(--retro-bg);font-size:10px;border-radius:2px}
+  #goal-bar{position:absolute;top:env(safe-area-inset-top,8px);left:50%;transform:translateX(-50%);font-size:8px;color:var(--retro-fg);opacity:.55;text-align:center;white-space:nowrap;pointer-events:none}
+  #goal-bar .hi{color:var(--neon-yellow)}
+  #tutorial{position:absolute;top:50%;left:50%;transform:translateX(-50%);font-size:11px;color:var(--neon-cyan);text-shadow:0 0 6px var(--neon-cyan);text-align:center;opacity:0;transition:opacity 300ms;pointer-events:none;line-height:1.6}
+  #tutorial.show{opacity:1}
   @keyframes blink{50%{opacity:0}}
   @media(prefers-reduced-motion:reduce){#splash p,*{animation:none!important;transition:none!important}}
 </style>
@@ -60,6 +67,8 @@
     <div id="combo" aria-live="polite">1x</div>
     <div id="share-prompt" role="button" tabindex="0">📸 SHARE 50x</div>
     <div id="settings"><button id="mute-btn" aria-label="mute">🔊</button></div>
+    <div id="goal-bar">HEDEF: AYNI RENK PEG'LERLE <span class="hi">COMBO</span> KUR · YÜKSEK SKOR YAP</div>
+    <div id="tutorial"></div>
     <div id="round-summary" role="dialog" aria-label="round end">
       <h2 id="rs-title">ROUND COMPLETE</h2>
       <div class="stats">
@@ -71,7 +80,16 @@
       <button id="rs-restart" class="btn">PLAY AGAIN</button>
     </div>
   </div>
-  <div id="splash"><h1>DROP</h1><p>tap anywhere to start</p></div>
+  <div id="splash">
+    <h1>DROP</h1>
+    <div class="how">
+      <div class="how-row"><span class="how-num">1</span><span>TAP üstten — top düşür</span></div>
+      <div class="how-row"><span class="how-num">2</span><span>AYNI RENK peg'lere çarpar — combo ↑</span></div>
+      <div class="how-row"><span class="how-num">3</span><span>ALTTAKİ zone'a düşer — skor</span></div>
+      <div class="how-row"><span class="how-num">4</span><span>3 AYNI RENK aynı zone'da → bonus top</span></div>
+    </div>
+    <p>tap anywhere to start</p>
+  </div>
   <div id="footer"><a href="./privacy.html">privacy</a> · <a href="./terms.html">terms</a></div>
 </div>
 
@@ -259,6 +277,25 @@ const SAVE = load();
 let state = freshState();
 window.state = state;
 
+// Tutorial messaging for early rounds
+const TUTORIAL_STEPS = [
+  { delay: 600,  msg: 'WATCH — first ball drops automatically', dur: 2200 },
+  { delay: 3500, msg: 'NOW YOU TRY — tap top to drop next ball', dur: 2500 },
+];
+let tutorialShown = false;
+function runTutorial() {
+  if (tutorialShown || (SAVE.plays && SAVE.plays > 0)) return; // first-time only
+  tutorialShown = true;
+  const el = document.getElementById('tutorial');
+  TUTORIAL_STEPS.forEach(step => {
+    setTimeout(() => {
+      el.textContent = step.msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), step.dur);
+    }, step.delay);
+  });
+}
+
 function startRound(autoDemo=false) {
   state.roundIndex++;
   state.pegSeed = (Date.now() ^ state.roundIndex) >>> 0;
@@ -282,6 +319,7 @@ function startRound(autoDemo=false) {
     spawnBall(W * 0.5, true);
     state.autoDemo = true;
     state.awaitingTap = false;
+    runTutorial();
   } else {
     state.autoDemo = false;
     state.awaitingTap = true;
@@ -407,8 +445,9 @@ function tick(dt) {
       b.landedZone = zoneClamp;
       sfx.zoneLand();
       emit('zone_land', { zone_color: ZONE_NAMES[zoneClamp], score_delta: scoreDelta, match_count: matched ? 1 : 0 });
-      // Push popup
-      state.popups.push({ x: b.x, y: ZONE_Y, text: '+'+scoreDelta, ts: Date.now(), life: 800 });
+      // Push popup with explanation on first scoring events
+      const popText = matched ? '+' + scoreDelta + ' MATCH!' : '+' + scoreDelta;
+      state.popups.push({ x: b.x, y: ZONE_Y, text: popText, ts: Date.now(), life: 1100 });
       // Update zoneFills for match-3 cascade
       state.zoneFills[zoneClamp].push(b.color);
       if (state.zoneFills[zoneClamp].length > 6) state.zoneFills[zoneClamp].shift();
@@ -511,14 +550,18 @@ function render() {
   grad.addColorStop(1, 'rgba(0,229,255,0.03)');
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,W,H);
-  // Top tap zone indicator (when awaiting)
+  // Top tap zone indicator (when awaiting) — pulsing arrow + label
   if (state.awaitingTap && !state.gameOver) {
-    ctx.fillStyle = 'rgba(0,229,255,0.06)';
-    ctx.fillRect(0,0,W,80);
-    ctx.fillStyle = 'rgba(200,200,218,0.4)';
-    ctx.font = '12px "Press Start 2P", monospace';
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now()/300);
+    ctx.fillStyle = 'rgba(0,229,255,' + (0.06 + pulse*0.08) + ')';
+    ctx.fillRect(0,0,W,90);
+    ctx.fillStyle = 'rgba(0,229,255,' + (0.6 + pulse*0.4) + ')';
+    ctx.font = '14px "Press Start 2P", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('TAP TO DROP', W/2, 50);
+    ctx.fillText('↓ TAP HERE TO DROP ↓', W/2, 50);
+    ctx.font = '8px "Press Start 2P", monospace';
+    ctx.fillStyle = 'rgba(200,200,218,0.55)';
+    ctx.fillText('match same-color pegs for combo', W/2, 75);
   }
   // Zones
   for (let i=0; i<4; i++) {
